@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Patient Records — Clinical Analytics</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0d1117; --panel:#161b22; --border:#262c36;
+    --text:#e6edf3; --muted:#8b949e; --accent:#3b82f6;
+    --danger:#f85149; --success:#3fb950;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); }
+  .navbar { background:var(--panel); border-bottom:1px solid var(--border); padding:0 32px; display:flex; align-items:center; height:60px; gap:32px; }
+  .navbar .brand { font-weight:700; font-size:1.05em; }
+  .navbar .brand span { color:var(--accent); }
+  .navbar a { color:var(--muted); text-decoration:none; font-size:0.92em; font-weight:500; padding:8px 0; }
+  .navbar a.active { color:var(--text); border-bottom:2px solid var(--accent); }
+  .navbar a:hover { color:var(--text); }
+  .container { max-width:1100px; margin:0 auto; padding:32px; }
+  .stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:28px; }
+  .stat-card { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:18px 20px; }
+  .stat-card .label { font-size:0.75em; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; }
+  .stat-card .value { font-family:'JetBrains Mono',monospace; font-size:1.6em; font-weight:600; margin-top:6px; }
+  .page-title { font-size:1.4em; font-weight:700; margin-bottom:4px; }
+  .page-subtitle { color:var(--muted); font-size:0.9em; margin-bottom:28px; }
+  .panel { background:var(--panel); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  table { width:100%; border-collapse:collapse; }
+  th { text-align:left; font-size:0.75em; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); padding:14px 20px; border-bottom:1px solid var(--border); }
+  td { padding:14px 20px; border-bottom:1px solid var(--border); font-size:0.9em; }
+  tr:last-child td { border-bottom:none; }
+  tr:hover td { background:#1c2128; }
+  .type-tag { padding:4px 10px; border-radius:6px; font-size:0.78em; font-weight:600; }
+  .type-tag.Readmission { background:rgba(59,130,246,0.15); color:#60a5fa; }
+  .type-tag.Screening { background:rgba(168,85,247,0.15); color:#c084fc; }
+  .risk-tag { font-weight:600; }
+  .risk-tag.high { color:var(--danger); }
+  .risk-tag.low { color:var(--success); }
+  .empty-state { text-align:center; padding:60px 20px; color:var(--muted); }
+  .timestamp { color:var(--muted); font-family:'JetBrains Mono',monospace; font-size:0.85em; }
+</style>
+</head>
+<body>
+  <div class="navbar">
+    <div class="brand">🏥 Clinical<span>Analytics</span></div>
+    <a href="/readmission">Readmission</a>
+    <a href="/screening">Screening</a>
+    <a href="/records" class="active">Records</a>
+  </div>
+
+  <div class="container">
+    <div class="stats-row">
+      <div class="stat-card"><div class="label">Total Predictions</div><div class="value">{{ total }}</div></div>
+      <div class="stat-card"><div class="label">High Risk Flagged</div><div class="value">{{ high_risk }}</div></div>
+      <div class="stat-card"><div class="label">Low Risk</div><div class="value">{{ total - high_risk }}</div></div>
+    </div>
+
+    <div class="page-title">Patient Records</div>
+    <div class="page-subtitle">History of all predictions made across both models</div>
+
+    <div class="panel">
+      {% if records %}
+      <table>
+        <tr>
+          <th>Type</th>
+          <th>Summary</th>
+          <th>Result</th>
+          <th>Probability</th>
+          <th>Timestamp</th>
+        </tr>
+        {% for r in records %}
+        <tr>
+          <td><span class="type-tag {{ r[0] }}">{{ r[0] }}</span></td>
+          <td>{{ r[1] }}</td>
+          <td><span class="risk-tag {{ 'high' if 'High' in r[2] else 'low' }}">{{ r[2] }}</span></td>
+          <td>{{ r[3] }}%</td>
+          <td class="timestamp">{{ r[4] }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+      {% else %}
+      <div class="empty-state">No predictions saved yet. Run a prediction on the Readmission or Screening page to see it here.</div>
+      {% endif %}
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Readmission Risk — Clinical Analytics</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --border: #262c36;
+    --text: #e6edf3; --muted: #8b949e; --accent: #3b82f6;
+    --danger: #f85149; --success: #3fb950;
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); }
+  .navbar { background:var(--panel); border-bottom:1px solid var(--border); padding:0 32px; display:flex; align-items:center; height:60px; gap:32px; }
+  .navbar .brand { font-weight:700; font-size:1.05em; }
+  .navbar .brand span { color:var(--accent); }
+  .navbar a { color:var(--muted); text-decoration:none; font-size:0.92em; font-weight:500; padding:8px 0; }
+  .navbar a.active { color:var(--text); border-bottom:2px solid var(--accent); }
+  .navbar a:hover { color:var(--text); }
+  .container { max-width:1100px; margin:0 auto; padding:32px; }
+  .stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:28px; }
+  .stat-card { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:18px 20px; }
+  .stat-card .label { font-size:0.75em; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; }
+  .stat-card .value { font-family:'JetBrains Mono',monospace; font-size:1.6em; font-weight:600; margin-top:6px; }
+  .page-title { font-size:1.4em; font-weight:700; margin-bottom:4px; }
+  .page-subtitle { color:var(--muted); font-size:0.9em; margin-bottom:28px; }
+  .grid { display:grid; grid-template-columns:1.2fr 1fr; gap:24px; }
+  .panel { background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:28px; }
+  .panel-label { font-size:0.75em; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:20px; }
+  .field { margin-bottom:16px; }
+  .field label { display:block; font-size:0.85em; color:var(--muted); margin-bottom:6px; }
+  .field input { width:100%; background:#0d1117; border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--text); font-family:inherit; }
+  .field input:focus { outline:none; border-color:var(--accent); }
+  .btn { width:100%; background:var(--accent); color:white; border:none; border-radius:8px; padding:13px; font-weight:600; cursor:pointer; margin-top:8px; }
+  .btn:hover { background:#2563eb; }
+  .result-panel { display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; }
+  .result-panel.empty { color:var(--muted); font-size:0.9em; }
+  .badge { padding:8px 18px; border-radius:20px; font-weight:700; margin-bottom:16px; }
+  .badge.high { background:rgba(248,81,73,0.15); color:var(--danger); }
+  .badge.low { background:rgba(63,185,80,0.15); color:var(--success); }
+  .prob-value { font-family:'JetBrains Mono',monospace; font-size:2.4em; font-weight:700; }
+  .gauge { width:100%; height:8px; background:#21262d; border-radius:10px; margin-top:16px; overflow:hidden; }
+  .gauge-fill { height:100%; border-radius:10px; }
+  .disclaimer { font-size:0.75em; color:var(--muted); text-align:center; margin-top:32px; }
+</style>
+</head>
+<body>
+  <div class="navbar">
+    <div class="brand">🏥 Clinical<span>Analytics</span></div>
+    <a href="/readmission" class="active">Readmission</a>
+    <a href="/screening">Screening</a>
+    <a href="/records">Records</a>
+  </div>
+
+  <div class="container">
+    <div class="stats-row">
+      <div class="stat-card"><div class="label">Total Predictions</div><div class="value">{{ total }}</div></div>
+      <div class="stat-card"><div class="label">High Risk Flagged</div><div class="value">{{ high_risk }}</div></div>
+      <div class="stat-card"><div class="label">Model</div><div class="value" style="font-size:1.1em;">Neural Net</div></div>
+    </div>
+
+    <div class="page-title">Readmission Risk Predictor</div>
+    <div class="page-subtitle">Deep learning model estimating hospital readmission risk for diabetic patients</div>
+
+    <div class="grid">
+      <div class="panel">
+        <div class="panel-label">Patient Clinical Data</div>
+        <form method="POST">
+          <div class="field"><label>Time in Hospital (days)</label><input type="number" name="time_in_hospital" min="1" max="14" required></div>
+          <div class="field"><label>Number of Lab Procedures</label><input type="number" name="num_lab_procedures" min="0" max="150" required></div>
+          <div class="field"><label>Number of Medications</label><input type="number" name="num_medications" min="0" max="80" required></div>
+          <div class="field"><label>Number of Diagnoses</label><input type="number" name="number_diagnoses" min="1" max="16" required></div>
+          <div class="field"><label>Prior Inpatient Visits</label><input type="number" name="number_inpatient" min="0" max="20" required></div>
+          <button class="btn" type="submit">Analyze Risk</button>
+        </form>
+      </div>
+
+      <div class="panel result-panel {{ '' if prediction else 'empty' }}">
+        {% if prediction %}
+          <span class="badge {{ 'high' if 'High' in prediction else 'low' }}">{{ prediction }}</span>
+          <div class="prob-value">{{ probability }}%</div>
+          <div style="color:var(--muted); font-size:0.8em; margin-top:4px;">Readmission Probability</div>
+          <div class="gauge"><div class="gauge-fill" style="width:{{ probability }}%; background:{{ '#f85149' if 'High' in prediction else '#3fb950' }};"></div></div>
+        {% else %}
+          Submit patient data to see prediction results
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="disclaimer">⚠️ Academic demonstration project — not a validated medical diagnostic tool.</div>
+  </div>
+</body>
+</html>
