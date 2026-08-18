@@ -35,11 +35,11 @@ def get_screening_model():
     return _screening_model, _screening_scaler, _screening_columns
 
 # ---------- Database (Supabase / Postgres) ----------
-DB_HOST = os.environ.get('SUPABASE_HOST', 'db.spcbhcujcsldcryqlanr.supabase.co')
+DDB_HOST = os.environ.get('SUPABASE_HOST', 'aws-0-ap-south-1.pooler.supabase.com')
 DB_PORT = os.environ.get('SUPABASE_PORT', '5432')
 DB_NAME = os.environ.get('SUPABASE_DB', 'postgres')
-DB_USER = os.environ.get('SUPABASE_USER', 'postgres')
-DB_PASSWORD = os.environ.get('SUPABASE_PASSWORD')  # set this in Render's environment variables, never hardcoded
+DB_USER = os.environ.get('SUPABASE_USER', 'postgres.spcbhcujcsldcryqlanr')
+DB_PASSWORD = os.environ.get('SUPABASE_PASSWORD') # set this in Render's environment variables, never hardcoded
 
 def get_db_connection():
     return psycopg2.connect(
