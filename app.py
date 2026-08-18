@@ -35,7 +35,7 @@ def get_screening_model():
     return _screening_model, _screening_scaler, _screening_columns
 
 # ---------- Database (Supabase / Postgres) ----------
-DDB_HOST = os.environ.get('SUPABASE_HOST', 'aws-0-ap-south-1.pooler.supabase.com')
+DB_HOST = os.environ.get('SUPABASE_HOST', 'aws-0-ap-south-1.pooler.supabase.com')
 DB_PORT = os.environ.get('SUPABASE_PORT', '5432')
 DB_NAME = os.environ.get('SUPABASE_DB', 'postgres')
 DB_USER = os.environ.get('SUPABASE_USER', 'postgres.spcbhcujcsldcryqlanr')
