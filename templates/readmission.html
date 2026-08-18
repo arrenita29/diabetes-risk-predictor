@@ -32,6 +32,7 @@
   .field label { display:block; font-size:0.85em; color:var(--muted); margin-bottom:6px; }
   .field input { width:100%; background:#0d1117; border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--text); font-family:inherit; }
   .field input:focus { outline:none; border-color:var(--accent); }
+  .field-hint { font-size:0.76em; color:#6b7280; margin-top:5px; line-height:1.4; }
   .btn { width:100%; background:var(--accent); color:white; border:none; border-radius:8px; padding:13px; font-weight:600; cursor:pointer; margin-top:8px; }
   .btn:hover { background:#2563eb; }
   .result-panel { display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; }
@@ -67,11 +68,41 @@
       <div class="panel">
         <div class="panel-label">Patient Clinical Data</div>
         <form method="POST">
-          <div class="field"><label>Time in Hospital (days)</label><input type="number" name="time_in_hospital" min="1" max="14" required></div>
-          <div class="field"><label>Number of Lab Procedures</label><input type="number" name="num_lab_procedures" min="0" max="150" required></div>
-          <div class="field"><label>Number of Medications</label><input type="number" name="num_medications" min="0" max="80" required></div>
-          <div class="field"><label>Number of Diagnoses</label><input type="number" name="number_diagnoses" min="1" max="16" required></div>
-          <div class="field"><label>Prior Inpatient Visits</label><input type="number" name="number_inpatient" min="0" max="20" required></div>
+          <div class="field">
+            <label>Patient Name</label>
+            <input type="text" name="patient_name" placeholder="e.g. John Doe" required>
+          </div>
+
+          <div class="field">
+            <label>Time in Hospital (days)</label>
+            <input type="number" name="time_in_hospital" min="1" max="14" required>
+            <div class="field-hint">How many days the patient was admitted for this stay. Range: 1–14 days.</div>
+          </div>
+
+          <div class="field">
+            <label>Number of Lab Procedures</label>
+            <input type="number" name="num_lab_procedures" min="0" max="150" required>
+            <div class="field-hint">Total lab tests run during the stay (blood work, cultures, scans, etc.) — not any single specific test. Typical range: 1–100.</div>
+          </div>
+
+          <div class="field">
+            <label>Number of Medications</label>
+            <input type="number" name="num_medications" min="0" max="80" required>
+            <div class="field-hint">Count of distinct medications prescribed during the stay (any type — not a specific drug). Typical range: 1–30.</div>
+          </div>
+
+          <div class="field">
+            <label>Number of Diagnoses</label>
+            <input type="number" name="number_diagnoses" min="1" max="16" required>
+            <div class="field-hint">Number of separate medical conditions recorded for this visit (e.g. diabetes + hypertension counts as 2). Range: 1–16.</div>
+          </div>
+
+          <div class="field">
+            <label>Prior Inpatient Visits</label>
+            <input type="number" name="number_inpatient" min="0" max="20" required>
+            <div class="field-hint">How many times this patient was hospitalized in the past year, before this visit. Enter 0 if none.</div>
+          </div>
+
           <button class="btn" type="submit">Analyze Risk</button>
         </form>
       </div>

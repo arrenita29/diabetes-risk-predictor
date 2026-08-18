@@ -33,6 +33,7 @@
   .field label { display:block; font-size:0.85em; color:var(--muted); margin-bottom:6px; }
   .field input { width:100%; background:#0d1117; border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--text); font-family:inherit; }
   .field input:focus { outline:none; border-color:var(--accent); }
+  .field-hint { font-size:0.74em; color:#6b7280; margin-top:5px; line-height:1.35; }
   .btn { width:100%; background:var(--accent); color:white; border:none; border-radius:8px; padding:13px; font-weight:600; cursor:pointer; margin-top:8px; }
   .btn:hover { background:#9333ea; }
   .result-panel { display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; }
@@ -44,6 +45,7 @@
   .gauge { width:100%; height:8px; background:#21262d; border-radius:10px; margin-top:16px; overflow:hidden; }
   .gauge-fill { height:100%; border-radius:10px; }
   .disclaimer { font-size:0.75em; color:var(--muted); text-align:center; margin-top:32px; }
+  .name-field { margin-bottom:16px; }
 </style>
 </head>
 <body>
@@ -68,22 +70,63 @@
       <div class="panel">
         <div class="panel-label">Diagnostic Measures</div>
         <form method="POST">
-          <div class="field-row">
-            <div class="field"><label>Pregnancies</label><input type="number" name="pregnancies" min="0" max="17" required></div>
-            <div class="field"><label>Age</label><input type="number" name="age" min="18" max="100" required></div>
+          <div class="field name-field">
+            <label>Patient Name</label>
+            <input type="text" name="patient_name" placeholder="e.g. Jane Doe" required>
           </div>
+
           <div class="field-row">
-            <div class="field"><label>Glucose</label><input type="number" name="glucose" min="0" max="200" required></div>
-            <div class="field"><label>Blood Pressure</label><input type="number" name="blood_pressure" min="0" max="140" required></div>
+            <div class="field">
+              <label>Pregnancies</label>
+              <input type="number" name="pregnancies" min="0" max="17" required>
+              <div class="field-hint">Total number of pregnancies. Enter 0 if not applicable.</div>
+            </div>
+            <div class="field">
+              <label>Age</label>
+              <input type="number" name="age" min="18" max="100" required>
+              <div class="field-hint">Patient's age in years.</div>
+            </div>
           </div>
+
           <div class="field-row">
-            <div class="field"><label>Skin Thickness</label><input type="number" name="skin_thickness" min="0" max="100" required></div>
-            <div class="field"><label>Insulin</label><input type="number" name="insulin" min="0" max="900" required></div>
+            <div class="field">
+              <label>Glucose</label>
+              <input type="number" name="glucose" min="0" max="200" required>
+              <div class="field-hint">Blood plasma glucose level (mg/dL) from a glucose tolerance test. Normal: ~70–140.</div>
+            </div>
+            <div class="field">
+              <label>Blood Pressure</label>
+              <input type="number" name="blood_pressure" min="0" max="140" required>
+              <div class="field-hint">Diastolic blood pressure (mm Hg) — the lower number in a BP reading. Normal: ~60–90.</div>
+            </div>
           </div>
+
           <div class="field-row">
-            <div class="field"><label>BMI</label><input type="number" step="0.1" name="bmi" min="0" max="70" required></div>
-            <div class="field"><label>Pedigree Function</label><input type="number" step="0.01" name="pedigree" min="0" max="2.5" required></div>
+            <div class="field">
+              <label>Skin Thickness</label>
+              <input type="number" name="skin_thickness" min="0" max="100" required>
+              <div class="field-hint">Triceps skinfold thickness (mm), an indirect measure of body fat. Typical: ~10–40.</div>
+            </div>
+            <div class="field">
+              <label>Insulin</label>
+              <input type="number" name="insulin" min="0" max="900" required>
+              <div class="field-hint">2-hour serum insulin level (mu U/mL) from a blood test. Normal: ~16–166.</div>
+            </div>
           </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label>BMI</label>
+              <input type="number" step="0.1" name="bmi" min="0" max="70" required>
+              <div class="field-hint">Body Mass Index = weight(kg) / height(m)². Normal: 18.5–24.9, overweight: 25–29.9.</div>
+            </div>
+            <div class="field">
+              <label>Pedigree Function</label>
+              <input type="number" step="0.01" name="pedigree" min="0" max="2.5" required>
+              <div class="field-hint">A score estimating diabetes risk from family history — higher means stronger genetic likelihood. Typical: 0.1–1.5.</div>
+            </div>
+          </div>
+
           <button class="btn" type="submit">Analyze Risk</button>
         </form>
       </div>
