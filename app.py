@@ -1,45 +1,56 @@
 from flask import Flask, render_template, request, redirect, url_for
 import joblib
 import numpy as np
-import tensorflow as tf
 import pandas as pd
 import psycopg2
 import os
 from datetime import datetime
+import tflite_runtime.interpreter as tflite
 
 app = Flask(__name__)
 
-# ---------- Lazy-loaded models ----------
-_readmission_model = None
+# ---------- Lazy-loaded TFLite models ----------
+_readmission_interpreter = None
 _readmission_scaler = None
 _readmission_columns = None
 
-_screening_model = None
+_screening_interpreter = None
 _screening_scaler = None
 _screening_columns = None
 
 def get_readmission_model():
-    global _readmission_model, _readmission_scaler, _readmission_columns
-    if _readmission_model is None:
-        _readmission_model = tf.keras.models.load_model('diabetes_model.keras')
+    global _readmission_interpreter, _readmission_scaler, _readmission_columns
+    if _readmission_interpreter is None:
+        _readmission_interpreter = tflite.Interpreter(model_path='diabetes_model.tflite')
+        _readmission_interpreter.allocate_tensors()
         _readmission_scaler = joblib.load('scaler.pkl')
         _readmission_columns = joblib.load('model_columns.pkl')
-    return _readmission_model, _readmission_scaler, _readmission_columns
+    return _readmission_interpreter, _readmission_scaler, _readmission_columns
 
 def get_screening_model():
-    global _screening_model, _screening_scaler, _screening_columns
-    if _screening_model is None:
-        _screening_model = tf.keras.models.load_model('diabetes_screening_model.keras')
+    global _screening_interpreter, _screening_scaler, _screening_columns
+    if _screening_interpreter is None:
+        _screening_interpreter = tflite.Interpreter(model_path='diabetes_screening_model.tflite')
+        _screening_interpreter.allocate_tensors()
         _screening_scaler = joblib.load('scaler_screening.pkl')
         _screening_columns = joblib.load('screening_columns.pkl')
-    return _screening_model, _screening_scaler, _screening_columns
+    return _screening_interpreter, _screening_scaler, _screening_columns
+
+def run_tflite_prediction(interpreter, input_scaled):
+    input_details = interpreter.get_input_details()
+    output_details = interpreter.get_output_details()
+    input_data = np.array(input_scaled, dtype=np.float32)
+    interpreter.set_tensor(input_details[0]['index'], input_data)
+    interpreter.invoke()
+    output = interpreter.get_tensor(output_details[0]['index'])
+    return output[0][0]
 
 # ---------- Database (Supabase / Postgres) ----------
 DB_HOST = os.environ.get('SUPABASE_HOST', 'aws-0-ap-south-1.pooler.supabase.com')
 DB_PORT = os.environ.get('SUPABASE_PORT', '5432')
 DB_NAME = os.environ.get('SUPABASE_DB', 'postgres')
 DB_USER = os.environ.get('SUPABASE_USER', 'postgres.spcbhcujcsldcryqlanr')
-DB_PASSWORD = os.environ.get('SUPABASE_PASSWORD') # set this in Render's environment variables, never hardcoded
+DB_PASSWORD = os.environ.get('SUPABASE_PASSWORD')
 
 def get_db_connection():
     return psycopg2.connect(
@@ -95,7 +106,7 @@ def home():
 
 @app.route('/readmission', methods=['GET', 'POST'])
 def readmission():
-    readmission_model, readmission_scaler, readmission_columns = get_readmission_model()
+    interpreter, readmission_scaler, readmission_columns = get_readmission_model()
 
     prediction = None
     probability = None
@@ -116,7 +127,7 @@ def readmission():
         input_data['number_inpatient'] = number_inpatient
 
         input_scaled = readmission_scaler.transform(input_data)
-        prediction_proba = readmission_model.predict(input_scaled)[0][0]
+        prediction_proba = run_tflite_prediction(interpreter, input_scaled)
         prediction = "High Risk of Readmission" if prediction_proba > 0.5 else "Low Risk of Readmission"
         probability = round(float(prediction_proba) * 100, 1)
 
@@ -128,7 +139,7 @@ def readmission():
 
 @app.route('/screening', methods=['GET', 'POST'])
 def screening():
-    screening_model, screening_scaler, screening_columns = get_screening_model()
+    interpreter, screening_scaler, screening_columns = get_screening_model()
 
     prediction = None
     probability = None
@@ -148,7 +159,7 @@ def screening():
                                      insulin, bmi, pedigree, age]], columns=screening_columns)
 
         input_scaled = screening_scaler.transform(input_data)
-        prediction_proba = screening_model.predict(input_scaled)[0][0]
+        prediction_proba = run_tflite_prediction(interpreter, input_scaled)
         prediction = "High Risk of Diabetes" if prediction_proba > 0.5 else "Low Risk of Diabetes"
         probability = round(float(prediction_proba) * 100, 1)
 
