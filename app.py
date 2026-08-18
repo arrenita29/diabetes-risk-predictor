@@ -8,15 +8,30 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-# ---------- Load Readmission Model ----------
-readmission_model = tf.keras.models.load_model('diabetes_model.keras')
-readmission_scaler = joblib.load('scaler.pkl')
-readmission_columns = joblib.load('model_columns.pkl')
+# ---------- Lazy-loaded models (only load when actually needed) ----------
+_readmission_model = None
+_readmission_scaler = None
+_readmission_columns = None
 
-# ---------- Load Screening Model ----------
-screening_model = tf.keras.models.load_model('diabetes_screening_model.keras')
-screening_scaler = joblib.load('scaler_screening.pkl')
-screening_columns = joblib.load('screening_columns.pkl')
+_screening_model = None
+_screening_scaler = None
+_screening_columns = None
+
+def get_readmission_model():
+    global _readmission_model, _readmission_scaler, _readmission_columns
+    if _readmission_model is None:
+        _readmission_model = tf.keras.models.load_model('diabetes_model.keras')
+        _readmission_scaler = joblib.load('scaler.pkl')
+        _readmission_columns = joblib.load('model_columns.pkl')
+    return _readmission_model, _readmission_scaler, _readmission_columns
+
+def get_screening_model():
+    global _screening_model, _screening_scaler, _screening_columns
+    if _screening_model is None:
+        _screening_model = tf.keras.models.load_model('diabetes_screening_model.keras')
+        _screening_scaler = joblib.load('scaler_screening.pkl')
+        _screening_columns = joblib.load('screening_columns.pkl')
+    return _screening_model, _screening_scaler, _screening_columns
 
 # ---------- Database Setup ----------
 def init_db():
@@ -65,6 +80,8 @@ def home():
 # ---------- Readmission Route ----------
 @app.route('/readmission', methods=['GET', 'POST'])
 def readmission():
+    readmission_model, readmission_scaler, readmission_columns = get_readmission_model()
+
     prediction = None
     probability = None
 
@@ -96,6 +113,8 @@ def readmission():
 # ---------- Screening Route ----------
 @app.route('/screening', methods=['GET', 'POST'])
 def screening():
+    screening_model, screening_scaler, screening_columns = get_screening_model()
+
     prediction = None
     probability = None
 
