@@ -5,7 +5,7 @@ import pandas as pd
 import psycopg2
 import os
 from datetime import datetime
-import tflite_runtime.interpreter as tflite
+import ai_edge_litert.interpreter as tflite
 
 app = Flask(__name__)
 

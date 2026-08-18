@@ -1,5 +1,5 @@
 flask
-tensorflow-cpu
+ai-edge-litert
 scikit-learn
 pandas
 numpy
